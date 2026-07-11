@@ -202,10 +202,15 @@ export class MeetRoom {
     }
   }
 
-  // Scale outgoing video down as the mesh grows: 720p for 1:1 → ~360p at 6 people.
+  // Outgoing quality ladder. Desktop: 1080p-capable up to 4 people — congestion control
+  // still lowers actual bitrate below these caps when an uplink can't sustain them.
+  // Touch devices: scale down aggressively; N-1 encodes on a phone is thermal suicide.
   private updateSendParams() {
     const n = Math.max(1, this.peers.size)
-    const [maxBitrate, scale] = n <= 1 ? [2_500_000, 1] : n === 2 ? [1_200_000, 1.5] : n === 3 ? [800_000, 2] : [500_000, 2]
+    const coarse = matchMedia('(pointer: coarse)').matches
+    const [maxBitrate, scale] = coarse
+      ? n <= 1 ? [2_500_000, 1] : n === 2 ? [1_200_000, 1.5] : n === 3 ? [800_000, 2] : [500_000, 2]
+      : n <= 1 ? [4_000_000, 1] : n === 2 ? [3_000_000, 1] : n === 3 ? [2_500_000, 1] : [1_500_000, 1.5]
     for (const { pc } of this.peers.values()) {
       for (const sender of pc.getSenders()) {
         if (sender.track?.kind !== 'video') continue

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef, useState, type ReactNode } from 'react'
 import { MeetRoom, type Participant } from '../lib/room'
-import { useAudioLevel, useStreamRef, useWakeLock } from '../lib/media'
+import { camConstraints, useAudioLevel, useStreamRef, useWakeLock } from '../lib/media'
 import { Cam, CamOff, Check, Copy, Flip, Hang, Mic, MicOff, Users } from '../icons'
 
 type Props = {
@@ -107,7 +107,7 @@ export default function Call({ roomId, stream, name, mic, cam, onEnded, onFull }
     const track = me.stream?.getVideoTracks()[0]
     const facing = track?.getSettings().facingMode
     room
-      .replaceVideoTrack({ facingMode: facing === 'environment' ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } })
+      .replaceVideoTrack(camConstraints({ facingMode: facing === 'environment' ? 'user' : 'environment' }))
       .catch(() => showToast('Could not switch camera'))
   }
 

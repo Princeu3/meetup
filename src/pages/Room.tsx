@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Backdrop, ThemeToggle, nav } from '../App'
-import { listDevices, useAudioLevel, useStreamRef } from '../lib/media'
+import { camConstraints, listDevices, useAudioLevel, useStreamRef } from '../lib/media'
 import { Cam, CamOff, Mic, MicOff } from '../icons'
 import Call from './Call'
 
@@ -61,7 +61,7 @@ function PreJoin({ roomId, onJoin }: { roomId: string; onJoin: (cfg: { stream: M
       const s = await Promise.race([
         navigator.mediaDevices.getUserMedia({
           audio: audio === true ? { echoCancellation: true, noiseSuppression: true } : audio,
-          video: video === true ? { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' } : video,
+          video: video === true ? camConstraints({ facingMode: 'user' }) : video,
         }),
         new Promise<never>((_, rej) => setTimeout(() => rej(Object.assign(new Error('timeout'), { name: 'TimeoutError' })), 10000)),
       ])
@@ -92,7 +92,7 @@ function PreJoin({ roomId, onJoin }: { roomId: string; onJoin: (cfg: { stream: M
 
   const switchDevice = (kind: 'audio' | 'video', deviceId: string) => {
     const a = kind === 'audio' ? { deviceId: { exact: deviceId }, echoCancellation: true, noiseSuppression: true } : true
-    const v = kind === 'video' ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } } : true
+    const v = kind === 'video' ? camConstraints({ deviceId: { exact: deviceId } }) : true
     acquire(a, v)
   }
 

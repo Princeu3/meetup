@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 
+export const isCoarse = matchMedia('(pointer: coarse)').matches
+
+// 1080p capture on desktop, 720p on touch devices (phone encoders/thermals can't take 3×1080p)
+export const camConstraints = (extra: MediaTrackConstraints = {}): MediaTrackConstraints => ({
+  width: { ideal: isCoarse ? 1280 : 1920 },
+  height: { ideal: isCoarse ? 720 : 1080 },
+  ...extra,
+})
+
 // Live mic level 0..1 from a stream. One utility serves the lobby meter and in-call speaking rings.
 export function useAudioLevel(stream: MediaStream | null, enabled = true) {
   const [level, setLevel] = useState(0)
