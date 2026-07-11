@@ -1,0 +1,145 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #09090b;
+  --color-surface: #161618;
+  --color-ink: #f5f5f7;
+  --color-mut: rgba(245, 245, 247, 0.62);
+  --color-faint: rgba(245, 245, 247, 0.38);
+  --color-accent: #4c8dff;
+}
+
+/* light theme — home/lobby/end screens only; calls stay dark */
+:root[data-theme='light'] {
+  --color-bg: #f4f4f6;
+  --color-surface: #ffffff;
+  --color-ink: #1c1c1e;
+  --color-mut: rgba(28, 28, 30, 0.62);
+  --color-faint: rgba(28, 28, 30, 0.4);
+  --color-accent: #2f6fe4;
+}
+
+/* in-call scope: always dark regardless of theme */
+.force-dark {
+  --color-bg: #09090b;
+  --color-surface: #161618;
+  --color-ink: #f5f5f7;
+  --color-mut: rgba(245, 245, 247, 0.62);
+  --color-faint: rgba(245, 245, 247, 0.38);
+  --color-accent: #4c8dff;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font: 100%/1.5 system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+/* display type: tight leading, negative tracking as it grows */
+.display {
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 680;
+}
+
+/* instant press feedback — on pointer-down, not release */
+.pressable {
+  transition: transform 100ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out, border-color 150ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+.pressable:active {
+  transform: scale(0.94);
+}
+
+/* translucent chrome — theme-aware */
+.glass {
+  background: color-mix(in srgb, var(--color-surface) 62%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 9%, transparent);
+}
+
+/* solid dark glass for overlays sitting on video */
+.glass-dark {
+  background: rgba(18, 18, 20, 0.66);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+}
+
+.glow {
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+.mirror {
+  transform: scaleX(-1);
+}
+
+/* speaking ring */
+.speaking {
+  box-shadow: 0 0 0 2.5px var(--color-accent);
+}
+
+/* entrance: fade up */
+.rise {
+  animation: rise 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* tile entrance: materialize */
+.tile-in {
+  animation: tile-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* chrome auto-hide */
+.chrome {
+  transition: opacity 350ms ease, transform 350ms ease;
+}
+.chrome-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-dark {
+    background: var(--color-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:active {
+    transition: none;
+    transform: none;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
