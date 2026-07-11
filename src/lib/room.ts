@@ -152,6 +152,23 @@ export class MeetRoom {
     for (const track of this.localParticipant.stream?.getTracks() ?? [])
       pc.addTrack(track, this.localParticipant.stream!)
 
+    // VP9 ~30% better quality/bit than VP8/H.264, but software-encoded: prefer it only for
+    // small calls (≤2 remote peers at connect). Negotiation intersects with the other side's
+    // codecs, so unsupported browsers silently keep their default — nothing can break.
+    if ('setCodecPreferences' in RTCRtpTransceiver.prototype && this.peers.size <= 2) {
+      const codecs = RTCRtpSender.getCapabilities?.('video')?.codecs
+      if (codecs) {
+        const rank = (m: string) => (m === 'video/vp9' ? 0 : m === 'video/h264' ? 1 : 2)
+        const sorted = [...codecs].sort((a, b) => rank(a.mimeType.toLowerCase()) - rank(b.mimeType.toLowerCase()))
+        for (const t of pc.getTransceivers())
+          if (t.sender.track?.kind === 'video') {
+            try {
+              t.setCodecPreferences(sorted)
+            } catch {}
+          }
+      }
+    }
+
     pc.onnegotiationneeded = async () => {
       try {
         peer.makingOffer = true
@@ -210,7 +227,7 @@ export class MeetRoom {
     const coarse = matchMedia('(pointer: coarse)').matches
     const [maxBitrate, scale] = coarse
       ? n <= 1 ? [2_500_000, 1] : n === 2 ? [1_200_000, 1.5] : n === 3 ? [800_000, 2] : [500_000, 2]
-      : n <= 1 ? [4_000_000, 1] : n === 2 ? [3_000_000, 1] : n === 3 ? [2_500_000, 1] : [1_500_000, 1.5]
+      : n <= 1 ? [6_000_000, 1] : n === 2 ? [3_500_000, 1] : n === 3 ? [2_500_000, 1] : [1_500_000, 1.5]
     for (const { pc } of this.peers.values()) {
       for (const sender of pc.getSenders()) {
         if (sender.track?.kind !== 'video') continue
